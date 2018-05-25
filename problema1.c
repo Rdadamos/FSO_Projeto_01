@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #define SIZE 9
+#define DEBUG 1
 
 FILE *file;
 int result[SIZE*3];
@@ -23,6 +24,10 @@ int main(int argc, char const *argv[]) {
     int i;
     for (i = 0; i < SIZE; i++)
     {
+      //
+      if (DEBUG)
+        printf("%d\n", i+1);
+      //
       // lines
       if (checkLine(i))
         result[i] = 1;
@@ -38,6 +43,10 @@ int main(int argc, char const *argv[]) {
         result[i+(SIZE*2)] = 1;
       else
         result[i+(SIZE*2)] = 0;
+      //
+      if (DEBUG)
+        printf("\n");
+      //
     }
     fclose(file);
   }
@@ -67,6 +76,15 @@ int checkLine(int lineNum)
   fseek(file, position, SEEK_SET);
   for (i = 0; i < SIZE; i++)
     fscanf(file, "%d", &line[i]);
+  //
+  if (DEBUG)
+  {
+    printf("line: ");
+    for (i = 0; i < SIZE; i++)
+      printf("%d ", line[i]);
+    printf("\n");
+  }
+  //
   return checkSudoku(line);
 }
 
@@ -80,6 +98,15 @@ int checkColumn(int columnNum)
     fseek(file, position, SEEK_SET);
     fscanf(file, "%d", &column[i]);
   }
+  //
+  if (DEBUG)
+  {
+    printf("column: ");
+    for (i = 0; i < SIZE; i++)
+      printf("%d ", column[i]);
+    printf("\n");
+  }
+  //
   return checkSudoku(column);
 }
 
@@ -99,6 +126,15 @@ int checkSubgrid(int subgridNum)
     fseek(file, position + (i * 2), SEEK_SET);
     fscanf(file, "%d", &subgrid[i]);
   }
+  //
+  if (DEBUG)
+  {
+    printf("subgrid: ");
+    for (i = 0; i < SIZE; i++)
+      printf("%d ", subgrid[i]);
+    printf("\n");
+  }
+  //
   return checkSudoku(subgrid);
 }
 
