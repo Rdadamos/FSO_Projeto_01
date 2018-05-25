@@ -43,12 +43,21 @@ int main(int argc, char const *argv[]) {
         result[i+(SIZE*2)] = 1;
       else
         result[i+(SIZE*2)] = 0;
-      //
-      if (DEBUG)
-        printf("\n");
-      //
     }
     fclose(file);
+    //
+    if (DEBUG)
+    {
+      printf("\nSolutions:");
+      for (i = 0; i < SIZE*3; i++)
+      {
+        if (!(i % 9))
+          printf("\n");
+        printf("%d", result[i]);
+      }
+      printf("\n\n");
+    }
+    //
   }
   else
   {
@@ -58,7 +67,7 @@ int main(int argc, char const *argv[]) {
   }
 
   int i;
-  for (i = 0; i < SIZE*2; i++)
+  for (i = 0; i < SIZE*3; i++)
   {
     if (!result[i]){
       printf("Invalid solution!\n");
@@ -112,19 +121,19 @@ int checkColumn(int columnNum)
 
 int checkSubgrid(int subgridNum)
 {
-  int i, subgrid[SIZE], position = (subgridNum % 3) * 6;;
+  // position for column
+  int i, subgrid[SIZE], position = (subgridNum % 3) * 6;
   if (subgridNum >= 3 && subgridNum < 6)
-    position = (3 * 19) + (subgridNum % 3) * 6;
+    position = (3 * 19) + (subgridNum % 3) * 6; // position for line
   else if (subgridNum >= 6)
-    position = (6 * 19) + (subgridNum % 3) * 6;
+    position = (6 * 19) + (subgridNum % 3) * 6; // position for line
   for (i = 0; i < SIZE; i++)
   {
-    if (i == 3)
-      position += 13;
-    if (i == 6)
-      position += 13;
     fseek(file, position + (i * 2), SEEK_SET);
     fscanf(file, "%d", &subgrid[i]);
+    //position for line inside subgrid
+    if (!((i+1) % 3))
+      position += (19 - 6); // 6 is for back to first columns
   }
   //
   if (DEBUG)
