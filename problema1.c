@@ -4,7 +4,10 @@
 #define SIZE 9
 
 FILE *file;
+int result[SIZE];
+
 int checkColumn(int columnNum);
+int checkSudoku(int array[SIZE]);
 
 int main(int argc, char const *argv[]) {
 
@@ -15,7 +18,14 @@ int main(int argc, char const *argv[]) {
   }
   if (file = fopen(argv[1], "r"))
   {
-    checkColumn(0);
+    int i;
+    for (i = 0; i < SIZE; i++)
+    {
+      if (checkColumn(i))
+        result[i] = 1;
+      else
+        result[i] = 0;
+    }
     fclose(file);
   }
   else
@@ -25,6 +35,15 @@ int main(int argc, char const *argv[]) {
     return -1;
   }
 
+  int i;
+  for (i = 0; i < SIZE; i++)
+  {
+    if (!result[i]){
+      printf("Invalid solution\n");
+      return 0;
+    }
+  }
+  printf("Valid solution\n");
   return 0;
 }
 
@@ -36,7 +55,49 @@ int checkColumn(int columnNum)
     int position = (i * 19) + (columnNum * 2);
     fseek(file, position, SEEK_SET);
     fscanf(file, "%d", &column[i]);
-    printf("%d\n", column[i]);
   }
-  return 0;
+  return checkSudoku(column);
 }
+
+int checkSudoku(int array[SIZE])
+{
+  int i, count[SIZE] = {0};
+  for(i = 0; i < SIZE; i++)
+  {
+    if (count[array[i]] != 1)
+      count[array[i]]++;
+    else
+      return 0;
+  }
+  return 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
