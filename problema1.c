@@ -2,15 +2,15 @@
 #include <stdlib.h>
 
 #define SIZE 9
-#define DEBUG 1
+#define DEBUG 0
 
 FILE *file;
 int result[SIZE*3];
 
-int checkLine(int lineNum);
-int checkColumn(int columnNum);
-int checkSubgrid(int subgridNum);
-int checkSudoku(int array[SIZE]);
+void checkLine(int lineNum);
+void checkColumn(int columnNum);
+void checkSubgrid(int subgridNum);
+void checkSudoku(int array[SIZE], int num, int multiple);
 
 int main(int argc, char const *argv[]) {
 
@@ -19,6 +19,7 @@ int main(int argc, char const *argv[]) {
     fprintf(stderr, "Usage: problema1.out <file name>\n");
     return -1;
   }
+
   if (file = fopen(argv[1], "r"))
   {
     int i;
@@ -28,21 +29,9 @@ int main(int argc, char const *argv[]) {
       if (DEBUG)
         printf("%d\n", i+1);
       //
-      // lines
-      if (checkLine(i))
-        result[i] = 1;
-      else
-        result[i] = 0;
-      // columns
-      if (checkColumn(i))
-        result[i+SIZE] = 1;
-      else
-        result[i+SIZE] = 0;
-      // subgrid
-      if (checkSubgrid(i))
-        result[i+(SIZE*2)] = 1;
-      else
-        result[i+(SIZE*2)] = 0;
+      checkLine(i);
+      checkColumn(i);
+      checkSubgrid(i);
     }
     fclose(file);
     //
@@ -61,7 +50,6 @@ int main(int argc, char const *argv[]) {
   }
   else
   {
-
     fprintf(stderr, "File %s not found!\n", argv[1]);
     return -1;
   }
@@ -75,10 +63,11 @@ int main(int argc, char const *argv[]) {
     }
   }
   printf("Valid solution!\n");
+
   return 0;
 }
 
-int checkLine(int lineNum)
+void checkLine(int lineNum)
 {
   //size of line is 19
   int i, line[SIZE], position = (lineNum * 19);
@@ -94,10 +83,10 @@ int checkLine(int lineNum)
     printf("\n");
   }
   //
-  return checkSudoku(line);
+  checkSudoku(line, lineNum, 0);
 }
 
-int checkColumn(int columnNum)
+void checkColumn(int columnNum)
 {
   int column[SIZE], i;
   for (i = 0; i < SIZE; i++)
@@ -116,10 +105,10 @@ int checkColumn(int columnNum)
     printf("\n");
   }
   //
-  return checkSudoku(column);
+  checkSudoku(column, columnNum, 1);
 }
 
-int checkSubgrid(int subgridNum)
+void checkSubgrid(int subgridNum)
 {
   int line, column, position, subgrid[SIZE];
   // ((subgridNum / 3) * 57) for first line of subgrid, ((subgridNum % 3) * 6) for first column of subgrid
@@ -142,18 +131,21 @@ int checkSubgrid(int subgridNum)
     printf("\n");
   }
   //
-  return checkSudoku(subgrid);
+  checkSudoku(subgrid, subgridNum, 2);
 }
 
-int checkSudoku(int array[SIZE])
+void checkSudoku(int array[SIZE], int num, int multiple)
 {
-  int i, count[SIZE] = {0};
+  int i, count[SIZE] = {0}, checker = 1, position = num + (multiple * 9);
   for(i = 0; i < SIZE; i++)
   {
     if (count[array[i]] != 1)
       count[array[i]]++;
     else
-      return 0;
+      checker = 0;
   }
-  return 1;
+  if (checker)
+    result[position] = 1;
+  else
+    result[position] = 0;
 }
