@@ -121,23 +121,21 @@ int checkColumn(int columnNum)
 
 int checkSubgrid(int subgridNum)
 {
-  // position for column
-  int i, subgrid[SIZE], position = (subgridNum % 3) * 6;
-  if (subgridNum >= 3 && subgridNum < 6)
-    position = (3 * 19) + (subgridNum % 3) * 6; // position for line
-  else if (subgridNum >= 6)
-    position = (6 * 19) + (subgridNum % 3) * 6; // position for line
-  for (i = 0; i < SIZE; i++)
-  {
-    fseek(file, position + (i * 2), SEEK_SET);
-    fscanf(file, "%d", &subgrid[i]);
-    //position for line inside subgrid
-    if (!((i+1) % 3))
-      position += (19 - 6); // 6 is for back to first columns
-  }
+  int line, column, position, subgrid[SIZE];
+  // ((subgridNum / 3) * 57) for first line of subgrid, ((subgridNum % 3) * 6) for first column of subgrid
+  int initialPosition = ((subgridNum / 3) * 57) + ((subgridNum % 3) * 6);
+  for (line = 0; line < 3; line++)
+    for (column = 0; column < 3; column++)
+    {
+      // (line * 19) for next line inside subgrid, (column * 2) for next column inside subgrid
+      position = initialPosition + (line * 19) + (column * 2);
+      fseek(file, position, SEEK_SET);
+      fscanf(file, "%d", &subgrid[(3 * line) + column]);
+    }
   //
   if (DEBUG)
   {
+    int i;
     printf("subgrid: ");
     for (i = 0; i < SIZE; i++)
       printf("%d ", subgrid[i]);
