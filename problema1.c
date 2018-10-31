@@ -1,18 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #define SIZE 9
-#define DEBUG 0
+#define NUM_THREADS SIZE
+#define DEBUG 1
 
 FILE *file;
 int result[SIZE*3];
+struct ARG
+{
+  int num;
+  char *argv;
+  void (*check)();
+};
 
-void checkLine(int lineNum);
-void checkColumn(int columnNum);
-void checkSubgrid(int subgridNum);
+void *multipleRunner(void *param);
+void checkLine(int lineNum, char *argv);
+void checkColumn(int columnNum, char *argv);
+void checkSubgrid(int subgridNum, char *argv);
 void checkSudoku(int array[SIZE], int num, int multiple);
+void checkSolution();
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char *argv[]) {
 
   if(argc != 2)
   {
@@ -22,18 +32,26 @@ int main(int argc, char const *argv[]) {
 
   if (file = fopen(argv[1], "r"))
   {
-    int i;
-    for (i = 0; i < SIZE; i++)
-    {
-      //
-      if (DEBUG)
-        printf("%d\n", i+1);
-      //
-      checkLine(i);
-      checkColumn(i);
-      checkSubgrid(i);
-    }
     fclose(file);
+    void (*check[3]) (int num, char *argv) = {checkLine, checkColumn, checkSubgrid};
+    int i, j;
+    for(i = 0; i < 3; i++)
+    {
+      pthread_t workers[NUM_THREADS];
+      pthread_attr_t attrs[NUM_THREADS];
+      struct ARG args[NUM_THREADS];
+      for(j = 0; j < NUM_THREADS; j++)
+      {
+        args[j].num = j;
+        args[j].argv = argv[1];
+        args[j].check = check[i];
+        pthread_attr_init(&attrs[j]);
+        pthread_create(&workers[j], &attrs[j], multipleRunner, &args[j]);
+      }
+      for(j = 0; j < NUM_THREADS; j++)
+        pthread_join(workers[j], NULL);
+    }
+    checkSolution();
     //
     if (DEBUG)
     {
@@ -54,30 +72,29 @@ int main(int argc, char const *argv[]) {
     return -1;
   }
 
-  int i;
-  for (i = 0; i < SIZE*3; i++)
-  {
-    if (!result[i]){
-      printf("Invalid solution!\n");
-      return 0;
-    }
-  }
-  printf("Valid solution!\n");
-
   return 0;
 }
 
-void checkLine(int lineNum)
+void *multipleRunner(void *param)
+{
+  struct ARG *arg = (struct ARG *)param;
+  arg->check(arg->num, arg->argv);
+  pthread_exit(0);
+}
+
+void checkLine(int lineNum, char *argv)
 {
   //size of line is 19
   int i, line[SIZE], position = (lineNum * 19);
+  FILE *file = fopen(argv, "r");
   fseek(file, position, SEEK_SET);
   for (i = 0; i < SIZE; i++)
     fscanf(file, "%d", &line[i]);
+  fclose(file);
   //
   if (DEBUG)
   {
-    printf("line: ");
+    printf("line %d: ", lineNum + 1);
     for (i = 0; i < SIZE; i++)
       printf("%d ", line[i]);
     printf("\n");
@@ -86,9 +103,10 @@ void checkLine(int lineNum)
   checkSudoku(line, lineNum, 0);
 }
 
-void checkColumn(int columnNum)
+void checkColumn(int columnNum, char *argv)
 {
   int column[SIZE], i;
+  FILE *file = fopen(argv, "r");
   for (i = 0; i < SIZE; i++)
   {
     //columnNum * 2 because of empty spaces
@@ -96,10 +114,11 @@ void checkColumn(int columnNum)
     fseek(file, position, SEEK_SET);
     fscanf(file, "%d", &column[i]);
   }
+  fclose(file);
   //
   if (DEBUG)
   {
-    printf("column: ");
+    printf("column %d: ", columnNum + 1);
     for (i = 0; i < SIZE; i++)
       printf("%d ", column[i]);
     printf("\n");
@@ -108,9 +127,10 @@ void checkColumn(int columnNum)
   checkSudoku(column, columnNum, 1);
 }
 
-void checkSubgrid(int subgridNum)
+void checkSubgrid(int subgridNum, char *argv)
 {
   int line, column, position, subgrid[SIZE];
+  FILE *file = fopen(argv, "r");
   // ((subgridNum / 3) * 57) for first line of subgrid, ((subgridNum % 3) * 6) for first column of subgrid
   int initialPosition = ((subgridNum / 3) * 57) + ((subgridNum % 3) * 6);
   for (line = 0; line < 3; line++)
@@ -121,11 +141,12 @@ void checkSubgrid(int subgridNum)
       fseek(file, position, SEEK_SET);
       fscanf(file, "%d", &subgrid[(3 * line) + column]);
     }
+  fclose(file);
   //
   if (DEBUG)
   {
     int i;
-    printf("subgrid: ");
+    printf("subgrid %d: ", subgridNum + 1);
     for (i = 0; i < SIZE; i++)
       printf("%d ", subgrid[i]);
     printf("\n");
@@ -148,4 +169,15 @@ void checkSudoku(int array[SIZE], int num, int multiple)
     result[position] = 1;
   else
     result[position] = 0;
+}
+
+void checkSolution() {
+  int i;
+  char *solution = "Valid solution!";
+  for (i = 0; i < SIZE*3; i++)
+  {
+    if (!result[i])
+      solution = "Invalid solution!";
+  }
+  printf("%s\n", solution);
 }
